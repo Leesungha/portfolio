@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="bookreply">
+
+<insert id="saveReply" parameterType="com.myebook.homepage.book.db.ReplyDTO"> 
+INSERT INTO BOOKREVIEW(bkid, id, rid, CONTENT, nickname, user_id, REG_DT, star) 
+VALUES (#{bkid}, #{id} , null , #{content} , #{nickname} , #{user_id} , now(), #{star}) 
+</insert>
+
+<select id="updateBoardStar">
+UPDATE book SET star = (SELECT avg(star) FROM bookreview WHERE bkid = #{bkid}) WHERE bkid = #{bkid}
+</select>
+
+<!-- 상품 소감(댓글) 리스트 -->
+<select id="replyList" resultType="com.myebook.homepage.book.db.ReplyDTO">
+ select * from bookreview where bkid = #{bkid} order by rid desc
+</select>
+
+<!-- 상품 소감(댓글) 삭제 -->
+<delete id="userdeleteReply">
+ delete from bookreview where rid = #{rid} and user_id = #{user_id}
+</delete>
+
+<!-- 아이디 체크 -->
+<select id="replyUserIdCheck" resultType="String">
+ select user_id from bookreview where rid = #{rid}
+</select>
+
+<!-- 상품 소감(댓글) 수정 -->
+<update id="modifyReply">
+update bookreview set content = #{content}, star = #{star} where rid = #{rid} and user_id = #{user_id}
+</update>
+
+<!--  모든 소감(댓글) -->
+<!--  모든 소감(댓글) -->
+<select id="allReply" resultType="com.myebook.homepage.book.db.ReplyDTO">
+ select r.bkid, r.user_id, r.rid, r.content, r.reg_dt, r.star, m.nickname
+ from bookreview r inner join user m on r.user_id = m.user_id
+</select>
+
+<!-- 소감(댓글) 지우기 -->
+<delete id="deleteReply2">
+ delete from bookreview where rid = #{rid}
+</delete>
+
+<!--  모든 소감(댓글) 
+<select id="allReply" resultType="com.myebook.homepage.book.db.ReplyDTO">
+select r.bkid, r.id, r.rid, r.content, r.reg_dt, m.nickname from bookreview r inner join member m on r.user_id = m.user_id
+</select>-->
+
+<!-- 소감(댓글) 지우기 -->
+<delete id="deleteReply">
+delete from bookreview where rid = #{rid}
+</delete>
+
+<!-- 별점 중복 검사 -->
+<select id="check_doublestar" parameterType="int" resultType="int">
+select count(*) from bookreview where bkid = #{bkid} and id = #{id}
+</select>
+	
+<select id="getStar" parameterType="int" resultType="float">
+select avg(star) from bookreview where bkid = #{bkid}
+</select>
+
+</mapper>

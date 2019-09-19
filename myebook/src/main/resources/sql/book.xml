@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="book">
+
+<insert id = "insert" parameterType="com.myebook.homepage.book.db.BookDTO">
+	INSERT INTO BOOK (ID, BOOKNAME, level, cate_name, PRICE, gdsDes, gdsImg, thumbImg, REG_DT, SELLINGTYPE, gdsStock) 
+	VALUES (#{id}, #{bookname}, #{level}, #{cate_name}, #{price}, #{gdsDes}, #{gdsImg}, #{thumbImg}, now(), #{sellingtype}, #{gdsStock}) 
+
+</insert>
+
+<!-- 상품 목록 --> 
+<select id="booklist" resultType="com.myebook.homepage.book.db.BookDTO">
+	select bkid, BOOKNAME, level, cate_name, PRICE, gdsDes, REG_DT, SELLINGTYPE, gdsImg, thumbImg, gdsStock
+	from BOOK order by bkid desc
+</select>
+
+<!-- 상품 조회 -->
+
+
+<select id="bookview" resultType="com.myebook.homepage.book.db.BookDTO"> 
+select bkid, bookname, level, cate_name, price, gdsDes, gdsImg, reg_dt, sellingtype, thumbImg, gdsStock, likey from book where bkid = #{bkid} 
+</select>
+
+<!-- <select id="bookview" resultType="com.myebook.homepage.book.db.BookCateDTO">
+select distinct b.bkid, b.bookname, b.level, b.cate_name, b.price, b.gdsDes, b.gdsImg, b.reg_dt, b.sellingtype, b.thumbImg 
+from book b 
+inner join category c 
+on b.level = c.level 
+where bkid = #{bkid}
+</select> -->
+
+<!-- 상품 수정 -->
+<update id="bookmodify" >
+update BOOK set level = #{level}, cate_name = #{cate_name}, bookname = #{bookname}, PRICE = #{price}, SELLINGTYPE = #{sellingtype}, GDSDES = #{gdsDes}, GDSIMG = #{gdsImg}, THUMBIMG = #{thumbImg}, gdsStock = #{gdsStock} where bkid = #{bkid}
+</update>
+
+<!-- 상품 삭제 -->
+<delete id = "bookdelete">
+delete from book where bkid = #{bkid};
+</delete>
+
+<!-- 특정 유저의 주문 목록 -->
+	<select id="orderList" resultType="com.myebook.homepage.book.db.OrderDTO">
+	 select odid, id, orderRec, userAddr1, userAddr2, userAddr3, orderPhon, amount, orderDate, delivery
+	 from bookorder;
+	</select>
+	
+	<!-- 특정 주문 목록 -->
+	<select id="orderView" resultType="com.myebook.homepage.book.db.OrderListDTO">
+	select o.odid, o.id, o.orderRec, o.userAddr1, o.userAddr2, o.userAddr3,
+	o.orderPhon, o.amount, o.orderDate, o.delivery, d.orderDetailsNum, d.bkid, d.cartStock,
+	b.bookname, b.thumbImg, b.price
+	from bookorder o inner join order_details d 
+		on o.odid = d.odid
+	inner join book b 
+		on d.bkid = b.bkid
+	where o.odid = #{odid}
+	</select>
+	
+<!-- 배송 상태 -->
+<update id="delivery">
+ update bookorder  set delivery = #{delivery} where odid = #{odid};
+ 
+</update>
+
+<!-- 상품 수량 조절 -->
+<update id="changeStock">
+ update book set gdsStock = gdsStock-#{gdsStock} where bkid = #{bkid}
+</update>
+
+<!-- 상품 수량 조절 보조 -->
+<select id="changeStock_sub" resultType = "com.myebook.homepage.book.db.OrderDetailsDTO">
+ select odid, bkid, cartStock from order_details where odid = #{odid}
+</select>
+
+<!-- 좋아요 -->
+ <insert id="createBoardLike">
+ INSERT INTO booklikey (bkid, id) VALUES (#{bkid}, #{id})
+ </insert>
+
+ <delete id="deleteBoardLike">
+ DELETE FROM booklikey WHERE bkid = #{bkid} AND id = #{id}
+ </delete>
+
+ <select id="updateBoardLike">
+ UPDATE book SET likey = (SELECT COUNT(*) FROM booklikey WHERE bkid = #{bkid}) WHERE bkid = #{bkid}
+ </select>
+
+ <select id="getBoardLike" resultType="int">
+ SELECT COUNT(booklikeid) FROM booklikey WHERE bkid = #{bkid} AND id = #{id}
+ </select>
+
+</mapper>
