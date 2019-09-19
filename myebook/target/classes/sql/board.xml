@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="board">
+
+<select parameterType="com.myebook.homepage.board.db.BoardDTO" 
+resultType="com.myebook.homepage.board.db.BoardDTO" id="getBoardContent"> 
+	SELECT BID, CATE_CD, TITLE, CONTENT, TAG, VIEW_CNT, nickname, REG_DT, EDIT_DT 
+	FROM BOARD WHERE BID = #{bid} 
+</select>
+
+<insert parameterType="com.myebook.homepage.board.db.BoardDTO" id="insertBoard"> 
+	INSERT INTO BOARD (BID, CATE_CD, ID, TITLE, CONTENT, TAG, VIEW_CNT, USER_ID, NICKNAME, REG_DT, EDIT_DT) 
+	VALUES (null, #{cate_cd}, #{id}, #{title}, #{content}, #{tag}, 0, #{user_id}, #{nickname}, now(), now()) </insert>
+
+<update parameterType="com.myebook.homepage.board.db.BoardDTO" id="updateBoard"> 
+	UPDATE BOARD SET CATE_CD = #{cate_cd} , TITLE = #{title} , 
+	CONTENT = #{content} , TAG = #{tag} , EDIT_DT = now() WHERE BID = ${bid} 
+</update>
+
+<delete parameterType="int" id="deleteBoard"> 
+	DELETE FROM BOARD WHERE BID = #{bid} 
+</delete>
+
+<update parameterType="com.myebook.homepage.board.db.BoardDTO" id="updateViewCnt"> 
+	UPDATE BOARD SET VIEW_CNT = VIEW_CNT + 1 WHERE BID = #{bid} 
+</update>
+
+<select id="getBoardList" resultType="com.myebook.homepage.board.db.BoardDTO">
+SELECT BID, CATE_CD, TITLE, CONTENT, TAG, VIEW_CNT, nickname, REG_DT, EDIT_DT FROM BOARD 
+where cate_cd = "자유"
+
+<trim prefix="and" prefixOverrides="AND|OR">
+
+<if test="searchType=='title' and keyword != null and keyword != '' "> 
+TITLE like CONCAT('%', #{keyword}, '%') </if>
+
+<if test="searchType=='content' and keyword != null and keyword != '' "> 
+CONTENT like CONCAT('%', #{keyword}, '%') </if>
+
+<if test="searchType=='nickname' and keyword != null and keyword != '' "> 
+nickname like CONCAT('%', #{keyword}, '%') </if>
+
+</trim>
+order by bid desc LIMIT #{startList}, #{listSize} 
+</select>
+
+
+<select resultType="int" id="getBoardListCnt">
+SELECT count(*) as listCnt FROM BOARD where cate_cd = #{cate_cd}
+
+<!-- <trim prefixOverrides="AND|OR" prefix="WHERE">
+
+<if test="keyword != null and keyword != '' ">
+
+	<if test="searchType=='title'"> AND TITLE like CONCAT('%', #{keyword}, '%') </if>
+	
+	<if test="searchType=='content'"> AND CONTENT like CONCAT('%', #{keyword}, '%') </if>
+	
+	<if test="searchType=='nickname'"> AND USER_ID like CONCAT('%', #{keyword}, '%') </if>
+
+</if>
+
+</trim> -->
+
+</select>
+
+<select id="getNoticeList" resultType="com.myebook.homepage.board.db.BoardDTO">
+SELECT BID, CATE_CD, TITLE, CONTENT, TAG, VIEW_CNT, nickname, REG_DT, EDIT_DT FROM BOARD
+where cate_cd = "공지"
+
+<trim prefix="and" prefixOverrides="AND|OR">
+
+<if test="searchType=='title' and keyword != null and keyword != '' "> 
+TITLE like CONCAT('%', #{keyword}, '%') </if>
+
+<if test="searchType=='content' and keyword != null and keyword != '' "> 
+CONTENT like CONCAT('%', #{keyword}, '%') </if>
+
+<if test="searchType=='nickname' and keyword != null and keyword != '' "> 
+nickname like CONCAT('%', #{keyword}, '%') </if>
+
+</trim>
+order by bid desc LIMIT #{startList}, #{listSize} 
+</select>
+
+<select id="getInquiryList" resultType="com.myebook.homepage.board.db.BoardDTO">
+SELECT BID, CATE_CD, TITLE, CONTENT, TAG, VIEW_CNT, nickname, REG_DT, EDIT_DT FROM BOARD
+where cate_cd = "구매"
+
+<trim prefix="and" prefixOverrides="AND|OR">
+
+<if test="searchType=='title' and keyword != null and keyword != '' "> 
+TITLE like CONCAT('%', #{keyword}, '%') </if>
+
+<if test="searchType=='content' and keyword != null and keyword != '' "> 
+CONTENT like CONCAT('%', #{keyword}, '%') </if>
+
+<if test="searchType=='nickname' and keyword != null and keyword != '' "> 
+nickname like CONCAT('%', #{keyword}, '%') </if>
+
+</trim>
+order by bid desc LIMIT #{startList}, #{listSize} 
+</select>
+
+</mapper>
