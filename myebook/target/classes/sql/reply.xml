@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="reply">
+
+<select resultType="com.myebook.homepage.board.db.ReplyDTO" id="getReplyList"> 
+	SELECT RID , BID , CONTENT , nickname , REG_DT , EDIT_DT 
+	FROM BOARDREVIEW 
+	WHERE BID = #{bid} 
+</select>
+
+<insert id="saveReply" parameterType="com.myebook.homepage.board.db.ReplyDTO"> 
+	INSERT INTO BOARDREVIEW(rid, ID, BID, CONTENT, nickname, user_id, REG_DT, EDIT_DT) 
+	VALUES (null, #{id} , #{bid} , #{content} , #{nickname} , #{user_id} , now() , now() ) 
+</insert>
+
+<update id="updateReply" parameterType="com.myebook.homepage.board.db.ReplyDTO"> 
+	UPDATE BOARDREVIEW SET CONTENT = #{content} , EDIT_DT = now() WHERE RID = #{rid} 
+</update>
+
+<delete id="deleteReply" parameterType="int"> 
+	DELETE FROM BOARDREVIEW WHERE RID = #{rid} 
+</delete>
+
+</mapper>

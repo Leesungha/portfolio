@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="shop">
+
+<!-- <select id="list" resultType="com.myebook.homepage.book.db.BookCateDTO">
+	select distinct b.bkid, b.bookname, b.level, b.cate_name, b.price, b.gdsDes, b.gdsImg, b.reg_dt, b.sellingtype, b.thumbImg 
+	from book b 
+	inner join category c 
+	on b.level = c.level
+	where b.cate_name = #{cate_name}
+</select>-->
+
+<!-- 카테고리별 상품 리스트 : 1차 분류 -->
+<select id="list_1" resultType="com.myebook.homepage.book.db.BookCateDTO">
+select distinct b.bkid, b.bookname, b.level, b.cate_name, b.price, b.gdsDes, 
+b.gdsImg, b.reg_dt, b.sellingtype, b.thumbImg from book b 
+inner join category c on b.level = c.level where b.level = #{level} and b.cate_name = #{cate_name}
+
+<trim prefix="and" prefixOverrides="AND|OR">
+
+<if test="search.searchType=='bookname' and search.keyword != null and search.keyword != '' "> 
+bookname like CONCAT('%', #{search.keyword}, '%') </if>
+
+<if test="search.searchType=='sellingtype' and search.keyword != null and search.keyword != '' "> 
+sellingtype like CONCAT('%', #{search.keyword}, '%') </if>
+
+</trim>
+order by bkid desc LIMIT #{search.startList}, #{search.listSize} 
+</select>
+
+<!-- 카테고리별 상품 리스트 : 2차 분류 -->
+<select id="list_2" resultType="com.myebook.homepage.book.db.BookCateDTO">
+select distinct b.bkid, b.bookname, b.level, b.cate_name, b.price, b.gdsDes, 
+b.gdsImg, b.reg_dt, b.sellingtype, b.thumbImg from book b 
+inner join category c on b.level = c.level where b.level = #{level}
+
+<trim prefix="and" prefixOverrides="AND|OR">
+
+<if test="search.searchType=='bookname' and search.keyword != null and search.keyword != '' "> 
+bookname like CONCAT('%', #{search.keyword}, '%') </if>
+
+<if test="search.searchType=='sellingtype' and search.keyword != null and search.keyword != '' "> 
+sellingtype like CONCAT('%', #{search.keyword}, '%') </if>
+
+</trim>
+order by bkid desc LIMIT #{search.startList}, #{search.listSize} 
+</select>
+
+<select resultType="int" id="getBookListCnt_1">
+SELECT count(*) as listCnt FROM BOOK where level = #{level} and cate_name = #{cate_name}
+</select>
+
+<select resultType="int" id="getBookListCnt_2">
+SELECT count(*) as listCnt FROM BOOK where level = #{level}
+</select>
+
+<!-- 상품 조회 -->
+<select id="bookview" resultType="com.myebook.homepage.book.db.BookCateDTO">
+ select bkid, bookname, level, cate_name, price, gdsDes, gdsImg, reg_dt, sellingtype, thumbImg, gdsStock, likey, star from book where bkid = #{bkid}
+</select>
+
+<select id="numberOfLike" resultType="com.myebook.homepage.book.db.BookCateDTO"> 
+	select likey, star from book where bkid = #{bkid}
+
+</select>
+
+<!-- 카트 담기 -->
+<insert id="addCart">
+ insert into bookcart (cartNum, user_id, bkid, cartStock, AddDate) values (null, #{user_id}, #{bkid}, #{cartStock}, now())
+</insert>
+
+<!-- 카트 리스트 -->
+<select id="cartList" resultType="com.myebook.homepage.book.db.CartListDTO">
+ select row_number() over(order by c.cartNum desc) as num, 
+ c.cartNum, c.user_id, c.bkid, c.cartStock, c.addDate, b.sellingtype, b.id, b.bookname, b.price, b.thumbImg
+ from bookcart c inner join book b 
+ on c.bkid = b.bkid where c.user_id = #{user_id}; 
+</select>
+
+<!-- 카트 삭제 -->
+<delete id="deleteCart">
+ delete from bookcart
+ where cartNum = #{cartNum}
+ and user_id = #{user_id}
+</delete>
+
+<!-- 주문 정보 -->
+<insert id="orderInfo">
+ insert into bookorder(odid, id, orderRec, userAddr1, userAddr2, userAddr3, orderPhon, amount, orderDate) 
+ values(#{odid}, #{id}, #{orderRec}, #{userAddr1}, #{userAddr2}, #{userAddr3}, #{orderPhon}, #{amount}, now())
+</insert>
+
+<!-- 주문 상세 정보 --> 
+<insert id="orderInfo_Details">
+ insert into order_details(orderDetailsNum, odid, bkid, cartStock)
+     select null, #{odid}, bkid, cartStock
+         from bookcart where user_id = #{user_id} 
+</insert>
+
+<!-- 카트 비우기 -->
+<delete id="cartAllDelete">
+delete from bookcart where user_id = #{user_id}
+</delete>
+
+<!-- 특정 유저의 주문 목록 -->
+<select id="orderList" resultType="com.myebook.homepage.book.db.OrderDTO">
+ select odid, id, orderRec, userAddr1, userAddr2, userAddr3, orderPhon, amount, orderDate, delivery
+ from bookorder where id = #{id} group by(amount)
+</select>
+
+<!-- 특정 주문 목록 -->
+<select id="orderView" resultType="com.myebook.homepage.book.db.OrderListDTO">
+select o.odid, o.id, o.orderRec, o.userAddr1, o.userAddr2, o.userAddr3,
+o.orferPhon, o.amount, o.orderDate, o.delivery, d.orderDetailsNum, d.bkid, d.cartStock,
+b.bookname, b.thumbImg, b.price
+from bookorder o inner join order_details d on o.odid = d.odid
+inner join book b on d.bkid = b.bkid
+where o.id = #{id}
+and o.odid = #{odid}
+</select>
+
+
+
+</mapper>
